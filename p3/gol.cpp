@@ -7,10 +7,10 @@
  * NOT mean it is okay to COPY THAT SOURCE.  What you submit here **MUST BE
  * YOUR OWN WORK**.
  * References:
- *
- *
+ *	Matt, Ash, Dewan, Steven G.
+ * 
  * Finally, please indicate approximately how many hours you spent on this:
- * #hours: 
+ * #hours: 23
  */
 
 #include <cstdio>
@@ -21,6 +21,8 @@
 using std::vector;
 #include <string>
 using std::string;
+#include <iostream>
+using std::cout;
 
 static const char* usage =
 "Usage: %s [OPTIONS]...\n"
@@ -35,13 +37,15 @@ string wfilename =  "/tmp/gol-world-current"; /* write state here */
 FILE* fworld = 0; /* handle to file wfilename. */
 string initfilename = "/tmp/gol-world-current"; /* read initial state from here. */
 
+vector<vector<bool>> world;
+
 /* NOTE: you don't have to write these functions -- this is just how
  * I chose to organize my code. */
-size_t nbrCount(size_t i, size_t j, const vector<vector<bool> >& g);
-void update();
-int initFromFile(const string& fname); /* read initial state into vectors. */
+void initFromFile(const string& fname); /* read initial state into vectors. */
 void mainLoop();
-void dumpState(FILE* f);
+void dumpState(FILE* f, vector<vector<bool>> &world);
+void boardupdate();
+int countAlive(int i, int j, vector<vector<bool>> V);
 
 /* NOTE: you can use a *boolean* as an index into the following array
  * to translate from bool to the right characters: */
@@ -78,28 +82,127 @@ int main(int argc, char *argv[]) {
 				return 1;
 		}
 	}
+
 	/* NOTE: at this point wfilename initfilename and max_gen
 	 * are all set according to the command line: */
-	printf("input file:  %s\n",initfilename.c_str());
-	printf("output file: %s\n",wfilename.c_str());
-	printf("fast forward to generation: %lu\n",max_gen);
+	//printf("input file:  %s\n",initfilename.c_str());
+	//printf("output file: %s\n",wfilename.c_str());
+	//printf("fast forward to generation: %lu\n",max_gen);
 	/* TODO: comment out 3 lines above once you see what's in them. */
 	/* NOTE: if wfilename == "-" you should write to stdout, not a file
 	 * named "-"! */
 
 	/* If you wrote the initFromFile function, call it here: */
-	// initFromFile(initfilename);
+	initFromFile(initfilename);
 	mainLoop();
 	return 0;
 }
 
 void mainLoop() {
-	/* TODO: write this */
-	/* update, write, sleep */
-	if (max_gen == 0) {
-		/* make one generation update per second */
-	} else {
-		/* go through generations as fast as you can until
-		 * max_gen is reached... */
+	FILE *f;
+    if (wfilename == "-"){
+        f = stdout;
+    }
+    else{
+        f = fopen(wfilename.c_str(), "wb");
+        if (!f){
+            std::cout<<"Error"<<"\n";
+            exit(1);
+        }
+    }
+
+    if (max_gen == 0){
+        while (true){
+            boardupdate();
+			dumpState(f,world);
+			sleep(1);
+        }
+    }
+    else{
+        for (size_t i = 0; i < max_gen; i++){
+			boardupdate();
+        }
+		dumpState(f,world); // writes the final gen to file/terminal
 	}
+
+fclose(f);
+}
+
+int countAlive(int i, int j, vector<vector<bool>> V){  // to traverse through the grid
+	int lives = 0;
+	int m, n;
+	n = V.size();
+	m = V[0].size();
+	for(int x = -1; x <= 1; x++){          // the wrap around
+		for(int y = -1; y <= 1; y++){
+			if(V[(i+x+n)%n][(j+y+m)%m] == 1){ // the condition for checking if its alive
+				lives++; 					  // a counter variable
+			}
+		}
+	}
+	if(V[i][j]==1){
+    lives--;
+	}
+	return lives;
+}
+
+void boardupdate(){
+	int m, n;
+	n = world.size();
+	m = world[0].size();
+		vector<vector<bool>> newearth = world;
+		for(int i = 0; i < n; i++){
+			for(int j = 0; j < m; j++){
+				int lives = countAlive(i,j,world);
+				if(world[i][j] == 1 && (lives < 2 || lives > 3)){
+					newearth[i][j] = 0;
+				}else if(world[i][j] == 0 && lives == 3){
+					newearth[i][j] = 1;
+				}
+			}
+		}
+		world = newearth;
+	}
+
+void initFromFile(const string& fname){
+	FILE *f = fopen(fname.c_str(), "rb"); /* note conversion to char* */
+    char d;
+    world.push_back(vector<bool>()); /* add a new row */
+    size_t rows = 0;                 /* current row we are filling */
+    while (fread(&d, 1, 1, f))
+    {
+        if (d == '\n'){
+            rows++;
+			world.push_back(vector<bool>());
+        }
+        else if (d == '.'){
+            world[rows].push_back(false); /* dead */
+        }
+        else{
+            world[rows].push_back(true); /* alive*/
+        }
+    }
+    if (world[rows].size() == 0){
+        world.pop_back();
+	}
+fclose(f);
+}
+
+void dumpState(FILE* f, vector<vector<bool>> &world){
+	char d;
+	for(size_t i = 0; i<world.size(); i++){
+		for(size_t j = 0; j<world[0].size(); j++){
+			if(world[i][j] == 1){
+				d = 'O';
+				fwrite(&d,1,1,f);
+			}
+			else{
+				d = '.';
+				fwrite(&d,1,1,f);
+			}
+		}
+d = '\n';
+fwrite(&d,1,1,f);
+	}
+
 }
