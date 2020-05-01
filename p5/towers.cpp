@@ -21,6 +21,8 @@ using std::endl;
 #include <getopt.h> // to parse long arguments.
 #include <cstdlib> // for atoi function
 
+void TOH(short n, short s, short aux, short t);
+
 /* Here's a skeleton main function for processing the arguments. */
 int main(int argc, char *argv[]) {
 	// define long options
@@ -33,7 +35,7 @@ int main(int argc, char *argv[]) {
 	// now process the options:
 	char c; // to hold the option
 	int opt_index = 0;
-	short n=0,start=0,end=0; /* to store inputs to the towers function. */
+	short n=0,start=0,end=0, aux = 0; /* to store inputs to the towers function. */
 	while ((c = getopt_long(argc, argv, "s:e:n:", long_opts, &opt_index)) != -1) {
 		switch (c) {
 			case 's': // process option s
@@ -48,12 +50,34 @@ int main(int argc, char *argv[]) {
 			case '?': // this will catch unknown options.
 				// here is where you would yell at the user.
 				// although, getopt will already print an error message.
+				cout<<" ERROR! "<<"\n";
 				return 1;
 		}
 	}
 
 	/* TODO: now that you have the options and arguments,
 	 * solve the puzzle. */
+	if(n < 1 || start == end){
+		cout<< "no changes were made" << "\n";
+	}
+	else{
+		TOH(n,start,end,aux);
+	}
 
 	return 0;
+}
+
+void TOH(short n, short s, short aux, short t){
+	aux = 6 - s - t;
+	if(n == 1){
+	cout << s << '\t' << t << '\n';
+	return;
+	}
+	
+	else{
+
+		TOH(n-1, s, aux, 0);
+		cout << s << '\t' << t << '\n';
+		TOH(n-1, aux, t, 0);
+	}
 }
