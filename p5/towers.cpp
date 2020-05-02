@@ -6,7 +6,7 @@
  * and the book, please list everything.  And remember- citing a source does
  * NOT mean it is okay to COPY THAT SOURCE.  What you submit here **MUST BE
  * YOUR OWN WORK**.
- * References:
+ * References: Dawen, Ash, Carlos, https://www.youtube.com/watch?v=2SUvWfNJSsM&disableadblock=1
  *
  *
  * Finally, please indicate approximately how many hours you spent on this:
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 	// now process the options:
 	char c; // to hold the option
 	int opt_index = 0;
-	short n=0,start=0,end=0, aux = 0; /* to store inputs to the towers function. */
+	short n=0,start=0,end=0; /* to store inputs to the towers function. */
 	while ((c = getopt_long(argc, argv, "s:e:n:", long_opts, &opt_index)) != -1) {
 		switch (c) {
 			case 's': // process option s
@@ -57,27 +57,27 @@ int main(int argc, char *argv[]) {
 
 	/* TODO: now that you have the options and arguments,
 	 * solve the puzzle. */
+	short aux = 0;
 	if(n < 1 || start == end){
-		cout<< "no changes were made" << "\n";
+		cout << "no change" << "\n";
 	}
-	else{
-		TOH(n,start,end,aux);
-	}
+		TOH(n,start,aux,end);
 
 	return 0;
 }
-
+/*This function takes in the # of disks, s - as the starting tower, aux - for the second tower, and 
+   t - as the target tower, where we would need to be*/
 void TOH(short n, short s, short aux, short t){
-	aux = 6 - s - t;
-	if(n == 1){
-	cout << s << '\t' << t << '\n';
+	aux = 6 - s -t;
+	if(n == 1){						// this is to check if the inputs are equal to 1 then to just return the value
+	cout << s << '\t' << t << "\n";
 	return;
 	}
-	
 	else{
+	/*This part of the function is where the recursion occurs in the program*/
+	TOH(n-1, s, t, aux);
+	cout << s << '\t' << t << "\n";
+	TOH(n-1, aux, s, t);
 
-		TOH(n-1, s, aux, 0);
-		cout << s << '\t' << t << '\n';
-		TOH(n-1, aux, t, 0);
-	}
+}
 }
